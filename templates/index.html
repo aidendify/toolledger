@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — ToolLedger{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ business_name }}</h1>
+  <p class="lede">Tool custody dashboard</p>
+</div>
+
+<section class="stats">
+  <div class="stat card"><div class="stat-n">{{ out_count }}</div><div class="stat-l">Checked out</div></div>
+  <div class="stat card"><div class="stat-n">{{ missing|length }}</div><div class="stat-l">Missing / overdue (≥{{ overdue_hours }}h)</div></div>
+</section>
+
+<section class="card">
+  <div class="row-between">
+    <h2>Missing / overdue</h2>
+    <form method="post" action="{{ url_for('alerts_missing') }}">
+      <button class="btn btn-secondary" type="submit" {% if not notify_ready %}title="Configure SMTP or Twilio + OWNER_EMAIL/PHONE"{% endif %}>Notify missing tools</button>
+    </form>
+  </div>
+  {% if missing %}
+  <table class="table">
+    <thead><tr><th>Tool</th><th>Status</th><th>Holder</th><th>Since</th><th></th></tr></thead>
+    <tbody>
+    {% for t in missing %}
+      <tr>
+        <td><a href="{{ url_for('tool_detail', tool_id=t.id) }}">{{ t.name }}</a></td>
+        <td>{% if t.status == 'missing' %}Missing{% elif t.is_overdue %}Overdue{% else %}{{ status_label(t.status) }}{% endif %}</td>
+        <td>{{ t.holder_name or "—" }}</td>
+        <td>{{ t.checked_out_at or "—" }}</td>
+        <td><a href="{{ url_for('tool_detail', tool_id=t.id) }}">Open</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No missing or overdue tools.</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>Currently out</h2>
+  {% if tools_out %}
+  <table class="table">
+    <thead><tr><th>Tool</th><th>Holder</th><th>Job</th><th>Since</th></tr></thead>
+    <tbody>
+    {% for t in tools_out %}
+      <tr>
+        <td><a href="{{ url_for('tool_detail', tool_id=t.id) }}">{{ t.name }}</a></td>
+        <td>{{ t.holder_name or "—" }}</td>
+        <td>{{ t.job_ref or "—" }}</td>
+        <td>{{ t.checked_out_at or "—" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Nothing checked out.</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <div class="row-between">
+    <h2>Recent events</h2>
+    <div class="btn-row">
+      <a class="btn btn-secondary" href="{{ url_for('export_custody') }}">Export custody CSV</a>
+      <a class="btn btn-secondary" href="{{ url_for('export_events') }}">Export events CSV</a>
+    </div>
+  </div>
+  {% if events %}
+  <table class="table">
+    <thead><tr><th>When</th><th>Tool</th><th>Event</th><th>Person</th><th>Actor</th></tr></thead>
+    <tbody>
+    {% for e in events %}
+      <tr>
+        <td>{{ e.at }}</td>
+        <td>{{ e.tool_name }}</td>
+        <td>{{ e.kind }}</td>
+        <td>{{ e.person_name or "—" }}</td>
+        <td>{{ e.actor }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No events yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

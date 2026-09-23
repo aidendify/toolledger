@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ tool.name }} — ToolLedger{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="page-head">
+    <p class="lede">{{ business_name }}</p>
+    <h1>{{ tool.name }}</h1>
+    {% if tool.asset_tag %}<p class="muted">Tag: {{ tool.asset_tag }}</p>{% endif %}
+  </div>
+
+  <div class="status-box status-{{ tool.status }}">
+    {% if tool.status == 'available' %}
+      <strong>In shop / available</strong>
+    {% elif tool.status == 'missing' %}
+      <strong>Marked missing</strong>
+      {% if holder %}<p>Last with {{ holder.name }}{% if tool.checked_out_at %} since {{ tool.checked_out_at }}{% endif %}</p>{% endif %}
+    {% else %}
+      <strong>Checked out to {{ holder.name if holder else 'someone' }}</strong>
+      {% if tool.checked_out_at %}<p>Since {{ tool.checked_out_at }}</p>{% endif %}
+      {% if tool.job_ref %}<p>Job: {{ tool.job_ref }}</p>{% endif %}
+    {% endif %}
+  </div>
+
+  {% if tool.status == 'out' %}
+  <form method="post" action="{{ url_for('tool_return', token=tool.token) }}" class="stack" style="margin-top:1rem">
+    <label>Return note <input name="note" placeholder="Optional"></label>
+    <button class="btn" type="submit">Return to shop</button>
+  </form>
+  {% endif %}
+
+  <hr class="sep">
+
+  <h2>{% if tool.status == 'out' %}Check out / transfer{% else %}Check out{% endif %}</h2>
+
+  {% if need_confirm %}
+  <p class="flash flash-error">{{ confirm_msg }}</p>
+  <form method="post" action="{{ url_for('tool_transfer', token=tool.token) }}" class="stack">
+    <input type="hidden" name="person_id" value="{{ confirm_person_id }}">
+    <input type="hidden" name="job_ref" value="{{ form_job_ref }}">
+    <input type="hidden" name="note" value="{{ form_note }}">
+    <label class="check-row"><input type="checkbox" name="confirm_transfer" value="1" required> Confirm force transfer</label>
+    <button class="btn btn-danger" type="submit">Force transfer</button>
+  </form>
+  <p class="muted"><a href="{{ url_for('tool_public', token=tool.token) }}">Cancel</a></p>
+  {% else %}
+  <form method="post" action="{{ url_for('tool_checkout', token=tool.token) }}" class="stack">
+    <label>Person
+      <select name="person_id" required>
+        <option value="">Select…</option>
+        {% for p in people %}
+        <option value="{{ p.id }}">{{ p.name }}{% if p.role %} ({{ p.role }}){% endif %}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Job ref <input name="job_ref" value="{{ form_job_ref }}" placeholder="Optional"></label>
+    <label>Note <input name="note" value="{{ form_note }}" placeholder="Optional"></label>
+    <button class="btn" type="submit">Check out</button>
+  </form>
+  {% if not people %}<p class="muted">No people yet — ask the shop owner to add crew in admin.</p>{% endif %}
+  {% endif %}
+</section>
+{% endblock %}

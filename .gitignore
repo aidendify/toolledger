@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.py[cod]
+*.db
+*.sqlite
+.venv/
+venv/
+data/
+.push_*
+.mcp_*

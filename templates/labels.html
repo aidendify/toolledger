@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Print labels — ToolLedger{% endblock %}
+{% block content %}
+<div class="page-head no-print">
+  <h1>Printable QR labels</h1>
+  <p class="lede">Each QR opens {{ base_url or '(set PUBLIC_BASE_URL)' }}/t/{token}</p>
+  {% if not base_url %}
+  <p class="flash flash-error">PUBLIC_BASE_URL is required for correct QR targets. Set it in .env and restart.</p>
+  {% endif %}
+  <button class="btn" type="button" onclick="window.print()">Print</button>
+</div>
+
+<div class="label-sheet">
+  {% for c in cells %}
+  <div class="label-cell">
+    {% if c.qr %}
+    <img class="label-qr" src="{{ c.qr }}" alt="QR">
+    {% else %}
+    <div class="label-qr placeholder">No QR</div>
+    {% endif %}
+    <div class="label-name">{{ c.name }}</div>
+    {% if c.asset_tag %}<div class="label-tag">{{ c.asset_tag }}</div>{% endif %}
+    <div class="label-code">{{ c.token_short }}</div>
+  </div>
+  {% else %}
+  <p class="muted no-print">No tools to label.</p>
+  {% endfor %}
+</div>
+{% endblock %}

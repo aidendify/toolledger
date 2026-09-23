@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Tools — ToolLedger{% endblock %}
+{% block content %}
+<div class="page-head row-between">
+  <div>
+    <h1>Tools</h1>
+    <p class="lede">Durable tools with QR checkout tokens</p>
+  </div>
+  <a class="btn" href="{{ url_for('tools_new') }}">New tool</a>
+</div>
+
+<section class="card">
+  <h2>Import CSV</h2>
+  <p class="muted">Columns (case-insensitive): name, asset_tag, category, home_location, notes</p>
+  <form method="post" action="{{ url_for('tools_import') }}" enctype="multipart/form-data" class="row-gap">
+    <input type="file" name="file" accept=".csv,text/csv" required>
+    <button class="btn btn-secondary" type="submit">Import</button>
+  </form>
+</section>
+
+<section class="card">
+  {% if tools %}
+  <table class="table">
+    <thead><tr><th>Name</th><th>Tag</th><th>Category</th><th>Home</th><th>Status</th><th>Holder</th></tr></thead>
+    <tbody>
+    {% for t in tools %}
+      <tr>
+        <td><a href="{{ url_for('tool_detail', tool_id=t.id) }}">{{ t.name }}</a></td>
+        <td>{{ t.asset_tag or "—" }}</td>
+        <td>{{ t.category or "—" }}</td>
+        <td>{{ t.home_location or "—" }}</td>
+        <td>{{ status_label(t.status) }}</td>
+        <td>{{ t.holder_name or "—" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No tools yet. Create one or import <code>sample-tools.csv</code>.</p>
+  {% endif %}
+</section>
+{% endblock %}

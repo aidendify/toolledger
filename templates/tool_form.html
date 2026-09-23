@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}New tool — ToolLedger{% endblock %}
+{% block content %}
+<div class="page-head">
+  <p class="crumb"><a href="{{ url_for('tools_list') }}">Tools</a> / New</p>
+  <h1>New tool</h1>
+</div>
+{% if errors %}
+<ul class="flashes">{% for e in errors %}<li class="flash flash-error">{{ e }}</li>{% endfor %}</ul>
+{% endif %}
+<section class="card">
+  <form method="post" class="stack">
+    <label>Name * <input name="name" required value="{{ (form.name if form else '') }}"></label>
+    <label>Asset tag / serial <input name="asset_tag" value="{{ (form.asset_tag if form else '') }}"></label>
+    <label>Category <input name="category" value="{{ (form.category if form else '') }}"></label>
+    <label>Home location <input name="home_location" value="{{ (form.home_location if form else '') }}" placeholder="Shop rack A, Van 2"></label>
+    <label>Notes <textarea name="notes" rows="3">{{ (form.notes if form else '') }}</textarea></label>
+    <button class="btn" type="submit">Create</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}{{ tool.name }} — ToolLedger{% endblock %}
+{% block content %}
+<div class="page-head">
+  <p class="crumb"><a href="{{ url_for('tools_list') }}">Tools</a> / {{ tool.name }}</p>
+  <h1>{{ tool.name }}</h1>
+  <p class="lede">{{ status_label(tool.status) }}{% if holder %} · {{ holder.name }}{% endif %}{% if tool.checked_out_at %} · since {{ tool.checked_out_at }}{% endif %}</p>
+</div>
+
+<section class="card">
+  <h2>Public QR URL</h2>
+  <p class="mono break">{{ public_url }}</p>
+  <button type="button" class="btn btn-secondary" onclick='copyText({{ public_url|tojson }}, this)'>Copy URL</button>
+  {% if not public_base_url %}<p class="flash flash-error">Set PUBLIC_BASE_URL so printed QR codes point at an absolute URL.</p>{% endif %}
+</section>
+
+<section class="card">
+  <h2>Edit</h2>
+  <form method="post" class="stack">
+    <input type="hidden" name="action" value="save">
+    <label>Name * <input name="name" required value="{{ tool.name }}"></label>
+    <label>Asset tag <input name="asset_tag" value="{{ tool.asset_tag or '' }}"></label>
+    <label>Category <input name="category" value="{{ tool.category or '' }}"></label>
+    <label>Home location <input name="home_location" value="{{ tool.home_location or '' }}"></label>
+    <label>Notes <textarea name="notes" rows="3">{{ tool.notes or '' }}</textarea></label>
+    <button class="btn" type="submit">Save</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Checkout / return</h2>
+  {% if tool.status == 'available' or tool.status == 'missing' %}
+  <form method="post" class="stack">
+    <input type="hidden" name="action" value="checkout">
+    <label>Person
+      <select name="person_id" required>
+        <option value="">Select…</option>
+        {% for p in people %}
+        <option value="{{ p.id }}">{{ p.name }}{% if p.role %} ({{ p.role }}){% endif %}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Job ref <input name="job_ref" placeholder="Optional"></label>
+    <label>Note <input name="note" placeholder="Optional"></label>
+    <button class="btn" type="submit">Check out</button>
+  </form>
+  {% else %}
+  <form method="post" class="stack">
+    <input type="hidden" name="action" value="return">
+    <label>Return note <input name="note" placeholder="Optional"></label>
+    <button class="btn" type="submit">Return to shop</button>
+  </form>
+  <hr class="sep">
+  <h3>Force transfer</h3>
+  <form method="post" class="stack">
+    <input type="hidden" name="action" value="checkout">
+    <label>New person
+      <select name="person_id" required>
+        <option value="">Select…</option>
+        {% for p in people %}
+        <option value="{{ p.id }}">{{ p.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Job ref <input name="job_ref"></label>
+    <label>Note <input name="note"></label>
+    <label class="check-row"><input type="checkbox" name="confirm_transfer" value="1" required> I confirm force transfer from current holder</label>
+    <button class="btn btn-danger" type="submit">Force transfer</button>
+  </form>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>Missing</h2>
+  {% if tool.status == 'missing' %}
+  <form method="post" action="{{ url_for('tool_missing', tool_id=tool.id) }}">
+    <input type="hidden" name="mark" value="0">
+    <button class="btn btn-secondary" type="submit">Clear missing</button>
+  </form>
+  {% else %}
+  <form method="post" action="{{ url_for('tool_missing', tool_id=tool.id) }}">
+    <input type="hidden" name="mark" value="1">
+    <button class="btn btn-danger" type="submit">Mark missing</button>
+  </form>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>Events</h2>
+  {% if events %}
+  <table class="table">
+    <thead><tr><th>When</th><th>Kind</th><th>Person</th><th>Actor</th><th>Note</th></tr></thead>
+    <tbody>
+    {% for e in events %}
+      <tr>
+        <td>{{ e.at }}</td>
+        <td>{{ e.kind }}</td>
+        <td>{{ e.person_name or "—" }}</td>
+        <td>{{ e.actor }}</td>
+        <td>{{ e.note or e.job_ref or "—" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No events.</p>
+  {% endif %}
+</section>
+{% endblock %}

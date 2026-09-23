@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Settings — ToolLedger{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Settings</h1>
+  <p class="lede">Overdue threshold and env snapshot</p>
+</div>
+<section class="card">
+  <form method="post" class="stack">
+    <label>Overdue hours
+      <input name="overdue_hours" type="number" step="0.1" min="0" value="{{ overdue_hours }}" required>
+    </label>
+    <p class="muted">Tools checked out longer than this appear on the missing/overdue list. Env default: {{ env_overdue }}</p>
+    <button class="btn" type="submit">Save</button>
+  </form>
+</section>
+<section class="card">
+  <h2>Environment</h2>
+  <ul class="plain">
+    <li>PUBLIC_BASE_URL: <code>{{ public_base or '(unset)' }}</code></li>
+    <li>SMTP: {{ 'configured' if smtp_configured else 'not configured' }}</li>
+    <li>Twilio: {{ 'configured' if twilio_configured else 'not configured' }}</li>
+  </ul>
+</section>
+{% endblock %}
